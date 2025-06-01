@@ -12,11 +12,28 @@ class Data(BaseModel):
 
 
 def similarity_check(text1: str, text2: str):
+    len_text1 = len(text1)
+    len_text2 = len(text2)
+    total_len = len_text1 + len_text2
     
+    text1_set = set(text1)
+    text2_set = set(text2)
+    common_chars = len(text1_set.intersection(text2_set))
+    similarity_perc = (2 * common_chars / total_len) * 100
+
+    return round(similarity_perc,2)
+
+
 
 @app.post("/process")
 def process_names(data: Data):
 
     name1 = data.name1
     name2 = data.name2
-    print(f'{name1} ... {name2}')
+
+    res = similarity_check(name1.lower(), name2.lower())
+    print(f'{name1} ... {name2}.... {res}')
+
+    return JSONResponse(status_code = 200, content = {
+        "Similarity": res
+    })
