@@ -1,8 +1,7 @@
-from fastapi import FastAPI, Path, HTTPException, Query
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, computed_field
-import json
-from typing import Annotated, Literal, Optional, Dict
+from pydantic import BaseModel, Field
+from typing import Annotated
 
 app = FastAPI()
 
