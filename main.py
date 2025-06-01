@@ -10,17 +10,38 @@ class Data(BaseModel):
     name2: Annotated[str, Field(..., description = "Text 2 as name 2", example = "Reliance Retail Pvt. Ltf.")]
 
 
-def similarity_check(text1: str, text2: str):
-    len_text1 = len(text1)
-    len_text2 = len(text2)
-    total_len = len_text1 + len_text2
-    
-    text1_set = set(text1)
-    text2_set = set(text2)
-    common_chars = len(text1_set.intersection(text2_set))
-    similarity_perc = (2 * common_chars / total_len) * 100
+def levenshtein_distance(s1: str, s2: str) -> int:
+    m, n = len(s1), len(s2)
+    # Initialize a matrix of size (m+1) x (n+1)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
 
-    return round(similarity_perc,2)
+    # Base cases: transforming empty string to the other
+    for i in range(m + 1):
+        dp[i][0] = i  # Deletion
+    for j in range(n + 1):
+        dp[0][j] = j  # Insertion
+
+    # Compute distances
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if s1[i - 1] == s2[j - 1]:
+                cost = 0  # No operation needed
+            else:
+                cost = 1  # Substitution
+            dp[i][j] = min(
+                dp[i - 1][j] + 1,      # Deletion
+                dp[i][j - 1] + 1,      # Insertion
+                dp[i - 1][j - 1] + cost  # Substitution
+            )
+    return dp[m][n]
+
+def similarity_percentage(s1: str, s2: str) -> float:
+    distance = levenshtein_distance(s1, s2)
+    max_len = max(len(s1), len(s2))
+    if max_len == 0:
+        return 100.0  # Both strings are empty
+    similarity = (1 - distance / max_len) * 100
+    return round(similarity, 2)
 
 
 
@@ -30,7 +51,7 @@ def process_names(data: Data):
     name1 = data.name1
     name2 = data.name2
 
-    res = similarity_check(name1.lower(), name2.lower())
+    res = similarity_percentage(name1.lower(), name2.lower())
     print(f'{name1} ... {name2}.... {res}')
 
     return JSONResponse(status_code = 200, content = {
